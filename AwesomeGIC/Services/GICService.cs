@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AwesomeGIC.Services
+﻿namespace AwesomeGIC.Services
 {
     public class GICService
     {
@@ -61,29 +55,18 @@ namespace AwesomeGIC.Services
             }
 
             decimal amount;
-            if (decimal.TryParse(tranSplit[3], out amount))
-            {
-                if (amount < 0)
-                {
-                    Console.WriteLine("Invalid amount, Please try again");
-                }
-
-                if (decimal.Round(amount, 2) != amount)
-                {
-                    Console.WriteLine("Invalid amount, Please try again");
-                    return;
-                }
-            }
-            else
+            if (!decimal.TryParse(tranSplit[3], out amount) || amount < 0 || decimal.Round(amount, 2) != amount)
             {
                 Console.WriteLine("Invalid amount, Please try again");
+                return;  
             }
-
-            // validate type and handle invalid typess
+            
+            // validate type and handle invalid types
             string transactionType = tranSplit[2];
             if (transactionType != "D" && transactionType != "W")
             {
                 Console.WriteLine("Invalid operation type. Please try again");
+                return;
             }
 
             if (transactionType == "W" && account.Balance == 0)
@@ -127,16 +110,16 @@ namespace AwesomeGIC.Services
                 Amount = amount,
             };
 
+            //assuming user always enter newer date than existing dates (as transaction date)
             if (transactionType == "D")
             {
-                account.Balance += amount;
-                transaction.Balance += amount; //assuming user always enter newer date than existing dates (as transaction date)
+                account.Balance += amount;          
             }
             else
             {
                 account.Balance -= amount;
-                transaction.Balance -= amount;
             }
+            transaction.Balance = account.Balance; 
 
             account.AccountId = tranSplit[1];
 
@@ -184,7 +167,7 @@ namespace AwesomeGIC.Services
 
             string? interestRule = Console.ReadLine();
             // check for valid input
-            if (interestRule == null)
+            if (string.IsNullOrEmpty(interestRule))
             {
                 return;
             }
@@ -200,7 +183,6 @@ namespace AwesomeGIC.Services
             string ruleIdStr = ruleSplit[1];
             string rateStr = ruleSplit[2];
 
-
             string dateFormat = "yyyyMMdd";
             DateTime date;
 
@@ -213,20 +195,12 @@ namespace AwesomeGIC.Services
                 return;
             }
 
-
             decimal interestRate;
-            if (decimal.TryParse(rateStr, out interestRate))
+            if (!decimal.TryParse(rateStr, out interestRate)|| interestRate <= 0 || interestRate >= 100)
             {
-                if (interestRate <= 0 || interestRate >= 100)
-                {
-                    Console.WriteLine("Invalid rate, Please try again");
-                }
+                Console.WriteLine("Invalid rate, Please try again");   
             }
-            else
-            {
-                Console.WriteLine("Invalid rate, Please try again");
-            }
-
+            
             InterestRule rule = new InterestRule
             {
                 RuleId = ruleIdStr,
@@ -234,6 +208,7 @@ namespace AwesomeGIC.Services
                 Rate = interestRate,
             };
 
+            // check if a rule for the same date exists
             var todayCreatedRule = rules.Where(r => r.Date == DateOnly.FromDateTime(date)).FirstOrDefault();
             if (todayCreatedRule != null)
             {
@@ -270,10 +245,9 @@ namespace AwesomeGIC.Services
             Console.WriteLine("(or enter blank to go back to main menu)");
             Console.WriteLine(">");
 
-            //Initial validations
             string? printStatementInput = Console.ReadLine();
             // check for valid input
-            if (printStatementInput == null)
+            if (string.IsNullOrEmpty(printStatementInput))
             {
                 return;
             }
@@ -288,9 +262,11 @@ namespace AwesomeGIC.Services
             string accountStr = inputSplit[0];
             string yearMonthStr = inputSplit[1];
 
-            if (yearMonthStr.Length != 6)
+            if (yearMonthStr.Length != 6|| !int.TryParse(yearMonthStr.Substring(0, 4), out int year) ||
+                !int.TryParse(yearMonthStr.Substring(4, 2), out int month))
             {
                 Console.WriteLine("Invalid <Year><Month>. Please try again.");
+                return;
             }
 
             var account = accounts.FirstOrDefault(x => x.AccountId == accountStr);
@@ -298,14 +274,17 @@ namespace AwesomeGIC.Services
             if (account == null)
             {
                 Console.WriteLine("Invalid Account.");
+                return;
             }
 
-            int year = int.Parse(yearMonthStr.Substring(0, 4));
-            int month = int.Parse(yearMonthStr.Substring(4, 2));
-
-            var transactions = account?.Transactions?
+            var transactions = account.Transactions?
                 .Where(t => t.Date.Year == year && t.Date.Month == month);
 
+            if (transactions == null || !transactions.Any())
+            {
+                Console.WriteLine($"No transactions found for {yearMonthStr}.");
+                return;
+            }
 
             Console.WriteLine("Account: " + account?.AccountId);
 
@@ -330,8 +309,10 @@ namespace AwesomeGIC.Services
             decimal interest = CalculateInterestForMonth(year, month, account, rules);
             decimal totalAmount = account.Balance + interest;
 
+            var monthEndDate = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
+
             // Print interest statement
-            Console.Write($"| {printStatementInput} \t");
+            Console.Write($"| {monthEndDate:yyyyMMdd} \t");
             Console.Write($"|  \t");
             Console.Write($"| I \t");
             Console.Write($"| {interest:0.00} \t");

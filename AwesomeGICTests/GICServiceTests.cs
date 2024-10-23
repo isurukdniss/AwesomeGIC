@@ -11,12 +11,12 @@ namespace AwesomeGICTests
         {
             // Arrange
             var accounts = new List<Account>();
-            var input = "sfdsdf";
+            var input = "Test";
 
             // Redirect Console input/output for testing
-            var stringReader = new System.IO.StringReader(input);
+            var stringReader = new StringReader(input);
             Console.SetIn(stringReader);
-            var stringWriter = new System.IO.StringWriter();
+            var stringWriter = new StringWriter();
             Console.SetOut(stringWriter);
 
             // Act
@@ -106,7 +106,7 @@ namespace AwesomeGICTests
         {
             // Arrange
             var rules = new List<InterestRule>();
-            var input = "sdfasdfsdf"; 
+            var input = "Test"; 
 
             // Redirect Console input/output for testing
             var stringReader = new StringReader(input);
@@ -130,9 +130,9 @@ namespace AwesomeGICTests
             var input = "20240101 RULE01 5"; 
 
             // Redirect Console input/output for testing
-            var stringReader = new System.IO.StringReader(input);
+            var stringReader = new StringReader(input);
             Console.SetIn(stringReader);
-            var stringWriter = new System.IO.StringWriter();
+            var stringWriter = new StringWriter();
             Console.SetOut(stringWriter);
 
             // Act
