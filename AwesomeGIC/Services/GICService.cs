@@ -313,7 +313,7 @@
 
             // Print interest statement
             Console.Write($"| {monthEndDate:yyyyMMdd} \t");
-            Console.Write($"|  \t");
+            Console.Write($"|  \t\t");
             Console.Write($"| I \t");
             Console.Write($"| {interest:0.00} \t");
             Console.Write($"| {totalAmount:0.00} \t");
